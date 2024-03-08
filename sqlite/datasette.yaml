@@ -1,0 +1,34 @@
+# Datasette settings block
+settings:
+  default_page_size: 50
+  sql_time_limit_ms: 3500
+  max_returned_rows: 2000
+
+# top-level plugin configuration
+plugins:
+  datasette-my-plugin:
+    key: valueA
+
+# Database and table-level configuration
+databases:
+  mabpat_db:
+    # plugin configuration for the your_db_name database
+    plugins:
+      datasette-my-plugin:
+        key: valueA
+    tables:
+      Applicants:
+      Applications:
+      Marine_Species:
+      Sequences:
+      Applications_Sequences:
+      Marine_Sequences:
+      Marine_Sequences_Protein_Annotations:
+        allow:
+          # Only the root user can access this table
+          id: root
+        # plugin configuration for the your_table_name table
+        # inside your_db_name database
+        plugins:
+          datasette-my-plugin:
+            key: valueB

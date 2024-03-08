@@ -1,0 +1,19 @@
+# deploy application
+
+rsconnect deploy manifest manifest.json --name mabpat --new --title main
+
+# restart server
+
+sudo systemctl restart shiny-server
+
+# check server
+
+sudo systemctl status shiny-server
+
+# start server in Spyder
+
+shiny run --reload
+
+# dir with actual server
+
+/srv/shiny-server

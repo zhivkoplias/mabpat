@@ -1,0 +1,11 @@
+shiny
+shinywidgets
+numpy
+pandas
+matplotlib
+seaborn
+plotly
+dash
+os
+functools
+

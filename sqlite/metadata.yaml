@@ -1,0 +1,189 @@
+title: MArine Bioprospecting PATent (MABPAT) dataset
+description_html: |
+  <p>The goal of the MABPAT dataset is to provide a useful insight into the scope and scale of marine bioprospecting. We offer the research and practitioner community direct access to marine genetic sequences submitted to patent bureaus, their potential to encode biological functions, species taxonomy, type of applicant, and other information that might be relevant for the discussion on the access and utilization of marine genetic resources</p>
+license: CC BY 4.0
+license_url: https://creativecommons.org/licenses/by/4.0/
+source: Novel dataset reveals growing prominence of deep-sea life for marine bioprospecting
+source_url: "https://doi.org/10.21203/rs.3.rs-3136354/v1"
+about: About MABPAT
+about_url: "https://mabpat.shinyapps.io/main/"
+databases:
+  MABPAT_dataset:
+    queries:
+      applicants_search:
+        sql: |
+          SELECT 
+            Applicants.Applicant_name,
+            Applicants.Applicant_type,
+            Applicants.Applicant_country,
+            Applications.Patent_application_number,
+            Applications.Year_of_application,
+            Applications.Patent_system,
+            Marine_Sequences.Sequence_accession_number,
+            Marine_Sequences.Species_name AS Marine_Species_name,
+            Marine_Sequences.GC_content,
+            Marine_Sequences.Sequence_length,
+            Marine_Sequences.Sequence_status,
+            Marine_Sequences.Is_protein_coding_sequence,
+            Marine_Sequences.Is_annotated,
+            Marine_Species.Domain,
+            Marine_Species.Phylum,
+            Marine_Species.Taxonomic_source,
+            Marine_Species.Is_deep_sea,
+            Marine_Species.Deep_sea_source,
+            Marine_Sequences_Protein_Annotations.f_header,
+            Marine_Sequences_Protein_Annotations.sseqid,
+            Marine_Sequences_Protein_Annotations.stitle,
+            Marine_Sequences_Protein_Annotations.pident,
+            Marine_Sequences_Protein_Annotations.evalue,
+            Marine_Sequences_Protein_Annotations.qcovs,
+            Marine_Sequences_Protein_Annotations.annotation_source
+          FROM 
+            Applications
+          INNER JOIN 
+            Applicants ON Applications.Applicant_name = Applicants.Applicant_name
+          INNER JOIN 
+            Applications_Sequences ON Applications.Patent_application_number = Applications_Sequences.Patent_application_number
+          INNER JOIN 
+            Sequences ON Applications_Sequences.Sequence_accession_number = Sequences.Sequence_accession_number
+          LEFT JOIN 
+            Marine_Sequences ON Sequences.Sequence_accession_number = Marine_Sequences.Sequence_accession_number
+          INNER JOIN 
+            Marine_Species ON Marine_Sequences.Species_name = Marine_Species.Species_name
+          LEFT JOIN 
+            Marine_Sequences_Protein_Annotations ON Marine_Sequences.Sequence_accession_number =       Marine_Sequences_Protein_Annotations.Sequence_accession_number
+          WHERE
+            Applicants.Applicant_name LIKE '%' || :text || '%' 
+          ORDER BY 
+            Applicants.Applicant_name
+          LIMIT
+            5000;
+        title: Unified query search for patent applicant names across all dataset tables
+        description_html: |
+          This SQL query provides a comprehensive view of a dataset by joining multiple tables related to patent applications, marine species, and genetic sequences. It allows for detailed searches on applicant names in the dataset, and organizes a wide array of information in a single query result.
+      marine_species_search:
+        sql: |
+          SELECT 
+            Applicants.Applicant_name,
+            Applicants.Applicant_type,
+            Applicants.Applicant_country,
+            Applications.Patent_application_number,
+            Applications.Year_of_application,
+            Applications.Patent_system,
+            Marine_Sequences.Sequence_accession_number,
+            Marine_Sequences.Species_name AS Marine_Species_name,
+            Marine_Sequences.GC_content,
+            Marine_Sequences.Sequence_length,
+            Marine_Sequences.Sequence_status,
+            Marine_Sequences.Is_protein_coding_sequence,
+            Marine_Sequences.Is_annotated,
+            Marine_Species.Domain,
+            Marine_Species.Phylum,
+            Marine_Species.Taxonomic_source,
+            Marine_Species.Is_deep_sea,
+            Marine_Species.Deep_sea_source,
+            Marine_Sequences_Protein_Annotations.f_header,
+            Marine_Sequences_Protein_Annotations.sseqid,
+            Marine_Sequences_Protein_Annotations.stitle,
+            Marine_Sequences_Protein_Annotations.pident,
+            Marine_Sequences_Protein_Annotations.evalue,
+            Marine_Sequences_Protein_Annotations.qcovs,
+            Marine_Sequences_Protein_Annotations.annotation_source
+          FROM 
+            Applications
+          INNER JOIN 
+            Applicants ON Applications.Applicant_name = Applicants.Applicant_name
+          INNER JOIN 
+            Applications_Sequences ON Applications.Patent_application_number = Applications_Sequences.Patent_application_number
+          INNER JOIN 
+            Marine_Sequences ON Applications_Sequences.Sequence_accession_number = Marine_Sequences.Sequence_accession_number
+          INNER JOIN 
+            Marine_Species ON Marine_Sequences.Species_name = Marine_Species.Species_name
+          LEFT JOIN 
+            Marine_Sequences_Protein_Annotations ON Marine_Sequences.Sequence_accession_number =       Marine_Sequences_Protein_Annotations.Sequence_accession_number
+          WHERE
+            Marine_Species.Species_name LIKE '%' || :text || '%' 
+          ORDER BY 
+            Applicants.Applicant_name
+          LIMIT
+            5000;
+        title: Unified query search for marine species names across all dataset tables
+        description_html: |
+          This SQL query provides a comprehensive view of a dataset by joining multiple tables related to patent applications, marine species, and genetic sequences. It allows for detailed searches on marine species in the dataset, and organizes a wide array of information in a single query result.
+    tables:
+      Applicants:
+        description: Contains information about entities that have applied for patents. Each record includes the applicant's name, the type of applicant (e.g., individual, organization, company), and the country where the applicant is headquartered.
+        facets:
+          - Applicant_type
+          - Applicant_country
+        columns:
+          Applicant_name: "The name of the patent applicant (Primary Key). Searchable"
+          Applicant_type: "The type/category of the applicant"
+          Applicant_country: "The country where the applicant is based"
+      Applications:
+        description: Contains information about each patent application linked to marine genetic sequences. Information includes the patent application number, the year of application, and the patent system under which the application was filed.
+        facets:
+          - Patent_system
+          - Year_of_application
+        columns:
+          Patent_application_number: "Patent application number in corresponding patent system (Primary Key). Searchable"
+          Applicant_name: "Name of the applicant, linking to the Applicants table. Searchable"
+          Year_of_application: "The year the patent application was filed"
+          Patent_system: "The patent system (e.g., USPTO, EPO) under which the application was filed"
+      Marine_Species:
+        description: Catalogs marine species associated with genetic sequences in the dataset. It includes the species name, taxonomic classification (domain, phylum), and information on whether the species is considered deep-sea.
+        facets:
+          - Is_deep_sea
+          - Phylum
+          - Domain
+        columns:
+          Species_name: "Name of the marine species (Primary Key). Searchable"
+          Domain: "Taxonomic domain of the species"
+          Phylum: "Taxonomic phylum of the species"
+          Taxonomic_source: "Source of the taxonomic classification"
+          Is_deep_sea: "Indicates if the species is a deep-sea species (1 for yes, 0 for no)"
+          Deep_sea_source: "Source of information on the species' deep-sea status"
+      Sequences:
+        description: Lists genetic sequences, specifying whether each sequence originates from a marine species.
+        facets:
+          - Is_marine_species
+          - Species_name
+        columns:
+          Sequence_accession_number: "Unique identifier for the genetic sequence as specified in INSDC databases (Primary Key). Searchable"
+          Species_name: "Name of the species associated with the sequence. Species_name"
+          Is_marine_species: "Indicates if the sequence comes from a marine species (1 for yes, 0 for no)"
+      Applications_Sequences:
+        description: Links patent applications to specific genetic sequences, enabling the tracking of which sequences are claimed in which patents.
+        facets:
+          - Patent_application_number
+        columns:
+          Patent_application_number: "Identifier for the patent application, referencing the Applications table. Searchable"
+          Sequence_accession_number: "Identifier for the genetic sequence as specified in INSDC databases, referencing the Sequences table. Searchable"
+          ID: "Unique identifier for each record (Primary Key)"
+      Marine_Sequences:
+        description: Provides detailed information about each marine genetic sequence, including its GC content, sequence length, and whether it contains protein-coding information.
+        facets:
+          - Sequence_status
+          - Is_protein_coding_sequence
+          - Is_annotated
+          - Species_name
+        columns:
+          Sequence_accession_number: "Unique identifier for the genetic sequence as specified in INSDC databases (Primary Key). Searchable"
+          Species_name: "Species associated with the sequence, linking to the Marine Species table. Searchable"
+          GC_content: "GC content of the sequence"
+          Sequence_length: "Length of the sequence"
+          Sequence_status: "Status of the sequence (e.g., confirmed, predicted)"
+          Is_protein_coding_sequence: "Indicates if the sequence is protein-coding (1 for yes, 0 for no)"
+          Is_annotated: "Indicates if the sequence has been annotated (1 for yes, 0 for no)"
+      Marine_Sequences_Protein_Annotations:
+        description: Contains annotations for protein-coding sequences, providing insights into the function and characteristics of the proteins encoded by the sequences.
+        columns:
+          Sequence_accession_number: "Unique identifier for the genetic sequence as specified in INSDC databases, linking to the Marine Sequences table (Primary Key). Searchable"
+          f_header: "Header of the most similar protein entry in the reference dataset"
+          sseqid: "Sequence ID of the similar protein entry"
+          stitle: "Title of the similar protein entry"
+          pident: "Percentage of identical matches"
+          evalue: "E-value of the alignment"
+          qcovs: "Query coverage of the alignment"
+          annotation_source: "Source of the annotation (sp for Swiss-Prot; tr for TrEMBL)"
+

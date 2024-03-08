@@ -1,0 +1,125 @@
+#views
+CREATE VIEW IF NOT EXISTS View_MarineSequences_Applicants AS
+SELECT 
+    ms.Sequence_accession_number,
+    ms.Species_name,
+    ms.GC_content,
+    ms.Sequence_length,
+    ms.Sequence_status,
+    ms.Is_protein_coding_sequence,
+    ms.Is_annotated,
+    a.Applicant_name,
+    a.Applicant_type,
+    a.Applicant_country,
+    ap.Patent_application_number,
+    ap.Year_of_application,
+    ap.Patent_system
+FROM 
+    Marine_Sequences ms
+JOIN 
+    Applications_Sequences aps ON ms.Sequence_accession_number = aps.Sequence_accession_number
+JOIN 
+    Applications ap ON aps.Patent_application_number = ap.Patent_application_number
+JOIN 
+    Applicants a ON ap.Applicant_name = a.Applicant_name;
+
+
+CREATE VIEW IF NOT EXISTS View_MarineSequences_Species AS
+SELECT 
+    ms.Sequence_accession_number,
+    ms.Species_name,
+    ms.GC_content,
+    ms.Sequence_length,
+    ms.Sequence_status,
+    ms.Is_protein_coding_sequence,
+    ms.Is_annotated,
+    sp.Domain,
+    sp.Phylum,
+    sp.Taxonomic_source,
+    sp.Is_deep_sea,
+    sp.Deep_sea_source
+FROM 
+    Marine_Sequences ms
+JOIN 
+    Marine_Species sp ON ms.Species_name = sp.Species_name;
+
+
+CREATE VIEW IF NOT EXISTS View_MarineSequences_Annotations AS
+SELECT 
+    ms.Sequence_accession_number,
+    ms.Species_name,
+    ms.GC_content,
+    ms.Sequence_length,
+    ms.Sequence_status,
+    ms.Is_protein_coding_sequence,
+    ms.Is_annotated,
+    mspa.f_header,
+    mspa.sseqid,
+    mspa.stitle,
+    mspa.pident,
+    mspa.evalue,
+    mspa.qcovs,
+    mspa.annotation_source
+FROM 
+    Marine_Sequences ms
+JOIN 
+    Marine_Sequences_Protein_Annotations mspa ON ms.Sequence_accession_number = mspa.Sequence_accession_number;
+
+
+#fts tables
+sqlite-utils enable-fts MABPAT_dataset.db Applicants Applicant_name
+sqlite-utils enable-fts MABPAT_dataset.db Applications Patent_application_number Applicant_name
+sqlite-utils enable-fts MABPAT_dataset.db Marine_Species Species_name
+sqlite-utils enable-fts MABPAT_dataset.db Sequences Sequence_accession_number Species_name
+sqlite-utils enable-fts MABPAT_dataset.db Applications_Sequences Patent_application_number Sequence_accession_number
+sqlite-utils enable-fts MABPAT_dataset.db Marine_Sequences Sequence_accession_number Species_name
+sqlite-utils enable-fts MABPAT_dataset.db Marine_Sequences_Protein_Annotations Sequence_accession_number
+
+
+#Query to export everything to csv
+
+.mode csv
+.headers on
+.output MABPAT_dataset.csv
+
+SELECT
+    Applicants.Applicant_name,
+    Applicants.Applicant_type,
+    Applicants.Applicant_country,
+    Applications.Patent_application_number,
+    Applications.Year_of_application,
+    Applications.Patent_system,
+    Sequences.Sequence_accession_number,
+    Sequences.Species_name,
+    Sequences.Is_marine_species,
+    Marine_Sequences.GC_content,
+    Marine_Sequences.Sequence_length,
+    Marine_Sequences.Sequence_status,
+    Marine_Sequences.Is_protein_coding_sequence,
+    Marine_Sequences.Is_annotated,
+    Marine_Sequences_Protein_Annotations.f_header,
+    Marine_Sequences_Protein_Annotations.sseqid,
+    Marine_Sequences_Protein_Annotations.stitle,
+    Marine_Sequences_Protein_Annotations.pident,
+    Marine_Sequences_Protein_Annotations.evalue,
+    Marine_Sequences_Protein_Annotations.qcovs,
+    Marine_Sequences_Protein_Annotations.annotation_source,
+    Marine_Species.Domain,
+    Marine_Species.Phylum,
+    Marine_Species.Taxonomic_source,
+    Marine_Species.Is_deep_sea,
+    Marine_Species.Deep_sea_source
+FROM 
+    Applicants
+JOIN  
+    Applications ON Applications.Applicant_name = Applicants.Applicant_name
+JOIN 
+    Applications_Sequences ON Applications.Patent_application_number = Applications_Sequences.Patent_application_number
+LEFT JOIN 
+    Sequences ON Applications_Sequences.Sequence_accession_number = Sequences.Sequence_accession_number
+LEFT JOIN 
+    Marine_Sequences ON Sequences.Sequence_accession_number = Marine_Sequences.Sequence_accession_number
+LEFT JOIN 
+    Marine_Sequences_Protein_Annotations ON Marine_Sequences.Sequence_accession_number = Marine_Sequences_Protein_Annotations.Sequence_accession_number
+LEFT JOIN 
+    Marine_Species ON Sequences.Species_name = Marine_Species.Species_name;
